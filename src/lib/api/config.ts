@@ -27,3 +27,11 @@ export const WS_BASE_URL = (process.env.NEXT_PUBLIC_WS_URL ?? "").replace(
  */
 export const STRIPE_PUBLISHABLE_KEY =
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
+
+/**
+ * OAuth client IDs for social login. Optional: when a value is empty, the
+ * corresponding social button is hidden (same pattern as the Stripe key), so the
+ * normal email/password login keeps working without extra configuration.
+ */
+export const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? "";
+export const GITHUB_CLIENT_ID = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID ?? "";

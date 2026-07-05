@@ -36,3 +36,25 @@ export function useCreateTransaction() {
     },
   });
 }
+
+/**
+ * DELETE /investments/transactions/{id}/.
+ * Deleting a transaction re-computes portfolio balances (backend signals), so we
+ * invalidate the transaction list plus the affected portfolio caches.
+ */
+export function useDeleteTransaction() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id }: { id: string; portfolio: string }) =>
+      investmentsApi.deleteTransaction(id),
+    onSuccess: (_data, { portfolio }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.transactions.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.portfolios.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.portfolios.detail(portfolio),
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.portfolios.assets });
+    },
+  });
+}

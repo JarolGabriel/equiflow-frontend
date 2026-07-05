@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Crown, Loader2, LogOut } from "lucide-react";
+import { useRef, useState } from "react";
+import { Camera, Crown, Loader2, LogOut } from "lucide-react";
 import { toast } from "sonner";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -25,6 +26,8 @@ import {
   useProfile,
   useUpdateProfile,
 } from "@/hooks/use-auth";
+
+const MAX_AVATAR_BYTES = 2 * 1024 * 1024; // 2MB
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -125,13 +128,52 @@ function ProfileForm({ user }: { user: User }) {
   const updateProfile = useUpdateProfile();
   const [firstName, setFirstName] = useState(user.first_name ?? "");
   const [lastName, setLastName] = useState(user.last_name ?? "");
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const initials =
+    `${user.first_name?.[0] ?? ""}${user.last_name?.[0] ?? ""}`.toUpperCase() ||
+    user.email[0]?.toUpperCase() ||
+    "?";
+  const avatarSrc = preview ?? user.profile_picture ?? undefined;
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0] ?? null;
+
+    if (selected) {
+      if (!selected.type.startsWith("image/")) {
+        toast.error("El archivo debe ser una imagen (JPG o PNG).");
+        e.target.value = "";
+        return;
+      }
+      if (selected.size > MAX_AVATAR_BYTES) {
+        toast.error("La imagen supera el tamaño máximo de 2MB.");
+        e.target.value = "";
+        return;
+      }
+    }
+
+    setFile(selected);
+    if (preview) URL.revokeObjectURL(preview);
+    setPreview(selected ? URL.createObjectURL(selected) : null);
+  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     updateProfile.mutate(
-      { first_name: firstName, last_name: lastName },
       {
-        onSuccess: () => toast.success("Perfil actualizado"),
+        first_name: firstName,
+        last_name: lastName,
+        ...(file ? { profile_picture: file } : {}),
+      },
+      {
+        onSuccess: () => {
+          toast.success("Perfil actualizado");
+          setFile(null);
+          if (preview) URL.revokeObjectURL(preview);
+          setPreview(null);
+        },
         onError: (err) => toast.error(getApiErrorMessage(err)),
       },
     );
@@ -139,6 +181,34 @@ function ProfileForm({ user }: { user: User }) {
 
   return (
     <form onSubmit={handleSave} className="space-y-4">
+      <div className="flex items-center gap-4">
+        <Avatar className="size-16">
+          <AvatarImage src={avatarSrc} alt={`${firstName} ${lastName}`} />
+          <AvatarFallback className="text-lg">{initials}</AvatarFallback>
+        </Avatar>
+        <div className="space-y-1">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Camera className="size-4" />
+            Cambiar foto
+          </Button>
+          <p className="text-xs text-muted-foreground">
+            {file ? file.name : "JPG o PNG. Máx. recomendado 2MB."}
+          </p>
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileChange}
+        />
+      </div>
+
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input id="email" value={user.email} disabled />

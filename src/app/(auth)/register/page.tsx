@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SocialLoginButtons } from "@/components/auth/social-login-buttons";
 import { getApiErrorMessage } from "@/lib/api/errors";
 import { useRegister } from "@/hooks/use-auth";
 
@@ -114,6 +115,8 @@ export default function RegisterPage() {
             Crear cuenta
           </Button>
         </form>
+
+        <SocialLoginButtons />
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
           ¿Ya tienes cuenta?{" "}

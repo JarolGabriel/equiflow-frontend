@@ -10,6 +10,7 @@ import { authApi } from "@/lib/api/auth";
 import type {
   LoginInput,
   RegisterInput,
+  SocialProvider,
   UpdateProfileInput,
 } from "@/lib/api/types";
 import {
@@ -50,6 +51,32 @@ export function useLogin() {
 export function useRegister() {
   return useMutation({
     mutationFn: (input: RegisterInput) => authApi.register(input),
+  });
+}
+
+/**
+ * Social login (Google/GitHub): exchanges the OAuth `code` for JWT tokens,
+ * then fetches the profile — same post-login flow as `useLogin`.
+ */
+export function useSocialLogin() {
+  const queryClient = useQueryClient();
+  const setTokens = useAuthStore((s) => s.setTokens);
+  const setUser = useAuthStore((s) => s.setUser);
+
+  return useMutation({
+    mutationFn: ({
+      provider,
+      code,
+    }: {
+      provider: SocialProvider;
+      code: string;
+    }) => authApi.socialLogin(provider, code),
+    onSuccess: async (tokens) => {
+      setTokens(tokens);
+      const user = await authApi.getProfile();
+      setUser(user);
+      queryClient.setQueryData(queryKeys.auth.profile, user);
+    },
   });
 }
 

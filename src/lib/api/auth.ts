@@ -2,6 +2,7 @@ import type {
   AuthTokens,
   LoginInput,
   RegisterInput,
+  SocialProvider,
   UpdateProfileInput,
   User,
 } from "@/lib/api/types";
@@ -16,6 +17,17 @@ export const authApi = {
   /** POST /users/login/ -> access + refresh tokens. */
   login: (input: LoginInput) =>
     request<AuthTokens>({ method: "POST", url: "/users/login/", data: input }),
+
+  /**
+   * POST /users/google/ | /users/github/ — exchanges the OAuth `code` returned by
+   * the provider for our own JWT access/refresh tokens.
+   */
+  socialLogin: (provider: SocialProvider, code: string) =>
+    request<AuthTokens>({
+      method: "POST",
+      url: `/users/${provider}/`,
+      data: { code },
+    }),
 
   /** POST /users/login/refresh/ */
   refresh: (refresh: string) =>
@@ -32,9 +44,32 @@ export const authApi = {
   /** GET /users/profile/ */
   getProfile: () => request<User>({ method: "GET", url: "/users/profile/" }),
 
-  /** PATCH /users/profile/ */
-  updateProfile: (input: UpdateProfileInput) =>
-    request<User>({ method: "PATCH", url: "/users/profile/", data: input }),
+  /**
+   * PATCH /users/profile/.
+   * When `profile_picture` is a `File`, sends multipart/form-data; otherwise sends
+   * a plain JSON PATCH (backwards compatible with name-only updates).
+   */
+  updateProfile: (input: UpdateProfileInput) => {
+    if (input.profile_picture instanceof File) {
+      const form = new FormData();
+      if (input.first_name !== undefined) {
+        form.append("first_name", input.first_name);
+      }
+      if (input.last_name !== undefined) {
+        form.append("last_name", input.last_name);
+      }
+      form.append("profile_picture", input.profile_picture);
+      return request<User>({
+        method: "PATCH",
+        url: "/users/profile/",
+        data: form,
+        // Let axios set the multipart boundary automatically for the FormData.
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    }
+
+    return request<User>({ method: "PATCH", url: "/users/profile/", data: input });
+  },
 
   /** POST /users/password/change/ */
   changePassword: (data: {

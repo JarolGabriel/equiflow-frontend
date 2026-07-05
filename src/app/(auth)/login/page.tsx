@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SocialLoginButtons } from "@/components/auth/social-login-buttons";
 import { getApiErrorMessage } from "@/lib/api/errors";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useLogin } from "@/hooks/use-auth";
@@ -103,6 +104,8 @@ function LoginForm() {
             Entrar
           </Button>
         </form>
+
+        <SocialLoginButtons />
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
           ¿No tienes cuenta?{" "}

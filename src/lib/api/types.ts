@@ -68,8 +68,12 @@ export interface LoginInput {
 export interface UpdateProfileInput {
   first_name?: string;
   last_name?: string;
-  profile_picture?: string | null;
+  /** A `File` triggers a multipart/form-data request; string/null keep JSON. */
+  profile_picture?: File | string | null;
 }
+
+/** Providers supported by the backend social login endpoints. */
+export type SocialProvider = "google" | "github";
 
 // ---------------------------------------------------------------------------
 // Assets & market data

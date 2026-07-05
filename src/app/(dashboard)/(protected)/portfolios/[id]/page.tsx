@@ -1,9 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { ArrowLeft, FileDown, Loader2, Plus } from "lucide-react";
+import {
+  ArrowLeft,
+  FileDown,
+  Loader2,
+  Pencil,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -19,6 +26,8 @@ import {
 } from "@/components/ui/table";
 import { AddHoldingDialog } from "@/components/portfolios/add-holding-dialog";
 import { AddTransactionDialog } from "@/components/portfolios/add-transaction-dialog";
+import { EditPortfolioDialog } from "@/components/portfolios/edit-portfolio-dialog";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { getApiErrorMessage } from "@/lib/api/errors";
 import { investmentsApi } from "@/lib/api/investments";
 import { cn } from "@/lib/utils";
@@ -29,16 +38,20 @@ import {
   formatSignedCurrency,
   signColorClass,
 } from "@/lib/format";
-import { usePortfolio } from "@/hooks/use-portfolios";
-import { useTransactions } from "@/hooks/use-transactions";
+import { useDeletePortfolio, usePortfolio } from "@/hooks/use-portfolios";
+import { useDeleteTransaction, useTransactions } from "@/hooks/use-transactions";
 
 export default function PortfolioDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
 
+  const router = useRouter();
   const { data: portfolio, isLoading, isError, refetch } = usePortfolio(id);
   const { data: allTransactions } = useTransactions();
   const [isExporting, setIsExporting] = useState(false);
+
+  const deletePortfolio = useDeletePortfolio();
+  const deleteTransaction = useDeleteTransaction();
 
   const isTracking = portfolio?.portfolio_type === "TRACKING";
 
@@ -177,6 +190,37 @@ export default function PortfolioDetailPage() {
               )}
               Exportar PDF
             </Button>
+            <div className="flex gap-2">
+              <EditPortfolioDialog
+                portfolio={portfolio}
+                trigger={
+                  <Button variant="outline" className="flex-1">
+                    <Pencil className="size-4" />
+                    Editar
+                  </Button>
+                }
+              />
+              <ConfirmDialog
+                trigger={
+                  <Button
+                    variant="outline"
+                    className="flex-1 text-negative hover:text-negative"
+                  >
+                    <Trash2 className="size-4" />
+                    Eliminar
+                  </Button>
+                }
+                title="Eliminar portafolio"
+                description={`Se eliminará "${portfolio.name}" y todas sus posiciones y transacciones. Esta acción no se puede deshacer.`}
+                confirmLabel="Eliminar"
+                destructive
+                onConfirm={async () => {
+                  await deletePortfolio.mutateAsync(portfolio.id);
+                  toast.success("Portafolio eliminado");
+                  router.replace("/portfolios");
+                }}
+              />
+            </div>
           </div>
         </div>
       </Card>
@@ -267,6 +311,7 @@ export default function PortfolioDetailPage() {
                   <TableHead>Activo</TableHead>
                   <TableHead className="text-right">Cantidad</TableHead>
                   <TableHead className="text-right">Precio</TableHead>
+                  <TableHead className="w-10" />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -298,6 +343,33 @@ export default function PortfolioDetailPage() {
                         tx.price_at_transaction,
                         portfolio.currency,
                       )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <ConfirmDialog
+                        trigger={
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label={`Eliminar transacción de ${tx.asset_symbol}`}
+                            className="text-muted-foreground hover:text-negative"
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        }
+                        title="Eliminar transacción"
+                        description={`Se eliminará esta ${
+                          tx.transaction_type === "BUY" ? "compra" : "venta"
+                        } de ${tx.asset_symbol} y se recalculará el balance. Esta acción no se puede deshacer.`}
+                        confirmLabel="Eliminar"
+                        destructive
+                        onConfirm={async () => {
+                          await deleteTransaction.mutateAsync({
+                            id: tx.id,
+                            portfolio: id,
+                          });
+                          toast.success("Transacción eliminada");
+                        }}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}

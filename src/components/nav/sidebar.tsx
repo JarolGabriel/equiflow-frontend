@@ -1,20 +1,31 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/utils";
+import { useAlerts } from "@/hooks/use-alerts";
 import { AlertBadge } from "./alert-badge";
 import { navItems } from "./nav-items";
 
 export function Sidebar() {
   const pathname = usePathname();
+  const alerts = useAlerts();
+  const alertCount = alerts.data?.length ?? 0;
 
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-border bg-card md:flex">
       <div className="flex h-16 items-center px-6">
-        <Link href="/dashboard" className="text-xl font-bold tracking-tight">
-          Equi<span className="text-primary">Flow</span>
+        <Link href="/dashboard" aria-label="EquiFlow">
+          <Image
+            src="/equiflow.svg"
+            alt="EquiFlow"
+            width={140}
+            height={42}
+            priority
+            className="h-9 w-auto"
+          />
         </Link>
       </div>
       <nav className="flex-1 space-y-1 px-3 py-4">
@@ -35,7 +46,9 @@ export function Sidebar() {
             >
               <Icon className="size-5 shrink-0" />
               <span className="flex-1">{item.label}</span>
-              {item.badge ? <AlertBadge count={item.badge} /> : null}
+              <AlertBadge
+                count={item.href === "/alerts" ? alertCount : item.badge ?? 0}
+              />
             </Link>
           );
         })}

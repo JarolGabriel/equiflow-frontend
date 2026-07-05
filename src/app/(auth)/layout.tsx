@@ -12,10 +12,10 @@ export default function AuthLayout({
           <Image
             src="/equiflow.svg"
             alt="EquiFlow"
-            width={200}
-            height={60}
+            width={260}
+            height={78}
             priority
-            className="h-12 w-auto"
+            className="h-16 w-auto"
           />
           <p className="mt-3 text-sm text-muted-foreground">
             Gestiona tus inversiones en un solo lugar

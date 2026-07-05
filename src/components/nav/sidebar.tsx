@@ -21,10 +21,10 @@ export function Sidebar() {
           <Image
             src="/equiflow.svg"
             alt="EquiFlow"
-            width={140}
-            height={42}
+            width={170}
+            height={51}
             priority
-            className="h-9 w-auto"
+            className="h-11 w-auto"
           />
         </Link>
       </div>

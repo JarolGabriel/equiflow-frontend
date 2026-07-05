@@ -37,6 +37,14 @@
 
 <!-- TODO: definir con Jarol (pegar endpoints, métodos, payloads y respuestas exactas) -->
 
+### Confirmados hasta ahora
+
+- `GET /investments/assets/{id}/history/` → `{ symbol, history: [{ price, timestamp }, ...] }` (últimos ~50 puntos). Fuente de datos de `PriceChart` (area/line chart). No hay OHLC.
+- Favoritos (modelo `FavoriteAsset`, `(user, asset)` único → una sola lista por usuario).
+  ⚠️ Los endpoints reales viven bajo `/market/`, NO bajo `/investments/` (ver `apps/market_data/views.py`):
+  - Lectura: `GET /market/assets/my-favorites/` → array de assets (`AssetSerializer`).
+  - Crear/quitar favorito: `POST /market/assets/toggle-favorite/` con `{ asset_id }` → `201 {status:"added"}` / `200 {status:"removed"}`.
+
 ## 5. Endpoints — Market data (`/market/`)
 
 <!-- TODO: definir con Jarol (pegar endpoints, métodos, payloads y respuestas exactas) -->

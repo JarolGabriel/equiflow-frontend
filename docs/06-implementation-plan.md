@@ -23,6 +23,11 @@
 
 - [ ] <!-- TODO: definir con Jarol -->
 
+### Backlog (features que requieren cambios de backend)
+
+- [ ] **Múltiples watchlists personalizadas** (requiere modelo nuevo en backend). Hoy solo existe `FavoriteAsset` con `(user, asset)` único → una sola lista de favoritos por usuario.
+- [ ] **Endpoint de agregación OHLC** para candlestick real en `PriceChart`. Hoy `GET /investments/assets/{id}/history/` solo devuelve `{ price, timestamp }` (area/line chart con recharts).
+
 ## Fase 3 — Alertas en tiempo real (WebSocket)
 
 ### Objetivo de la fase

@@ -27,6 +27,9 @@ interface RetriableRequestConfig extends InternalAxiosRequestConfig {
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
+  // Fail fast instead of spinning forever when the backend hangs (e.g. cold
+  // start or a blocked upstream price fetch). Surfaces an error to the UI.
+  timeout: 20000,
   headers: { "Content-Type": "application/json" },
 });
 
